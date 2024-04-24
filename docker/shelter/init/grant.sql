@@ -1,0 +1,1 @@
+GRANT ALL ON ppiwko1 TO 'ppiwko1'@'%';

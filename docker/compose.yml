@@ -1,0 +1,34 @@
+services:
+  shelter:
+    build:
+      context: shelter
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SHELTER_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${SHELTER_MYSQL_DATABASE}
+      MYSQL_USER: ${SHELTER_MYSQL_USER}
+      MYSQL_PASSWORD: ${SHELTER_MYSQL_PASSWORD}
+    ports:
+      - "3308:3306"
+  pet:
+    build:
+      context: pet
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PET_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${PET_MYSQL_DATABASE}
+      MYSQL_USER: ${PET_MYSQL_USER}
+      MYSQL_PASSWORD: ${PET_MYSQL_PASSWORD}
+    ports:
+      - "3309:3306"
+  metrics:
+    build:
+      context: metrics
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: ${METRICS_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${METRICS_MYSQL_DATABASE}
+      MYSQL_USER: ${METRICS_MYSQL_USER}
+      MYSQL_PASSWORD: ${METRICS_MYSQL_PASSWORD}
+    ports:
+      - "3310:3306"
