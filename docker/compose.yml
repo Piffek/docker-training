@@ -22,6 +22,9 @@ services:
     ports:
       - "3309:3306"
   metrics:
+    depends_on:
+      - shelter
+      - pet
     build:
       context: metrics
       dockerfile: Dockerfile
