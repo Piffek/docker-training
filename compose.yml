@@ -33,6 +33,14 @@ services:
     ports:
       - "3308:5432"
 
+  shelter-app:
+    container_name: shelter-app
+    image: piffek1/shelter-service:latest
+    pull_policy: always
+    depends_on:
+      shelter:
+        condition: "service_healthy"
+
   metrics:
     build:
       context: metrics
