@@ -1,20 +1,4 @@
 services:
-  shelter:
-    image: postgres
-    volumes:
-      - ./shelter/init:/docker-entrypoint-initdb.d
-    environment:
-      POSTGRES_PASSWORD: ${SHELTER_POSTGRES_PASSWORD}
-      POSTGRES_USER: ${SHELTER_POSTGRES_USER}
-      POSTGRES_DB: ${SHELTER_POSTGRES_DB}
-    healthcheck:
-      test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${SHELTER_POSTGRES_USER} -d ${SHELTER_POSTGRES_DB}'" ]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-    ports:
-      - "3311:5432"
-
   pet:
     image: mysql:8.2.0
     volumes:
@@ -26,10 +10,28 @@ services:
       MYSQL_PASSWORD: ${PET_MYSQL_PASSWORD}
     healthcheck:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "pet" ]
-      timeout: 10s
-      retries: 10
+      retries: 5
     ports:
       - "3312:3306"
+
+  shelter:
+    image: postgres
+    volumes:
+      - ./shelter/init:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_PASSWORD: ${SHELTER_POSTGRES_PASSWORD}
+      POSTGRES_USER: ${SHELTER_POSTGRES_USER}
+      POSTGRES_DB: ${SHELTER_POSTGRES_DB}
+    depends_on:
+      pet:
+        condition: "service_healthy"
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${SHELTER_POSTGRES_USER} -d ${SHELTER_POSTGRES_DB}'" ]
+      interval: 3s
+      timeout: 3s
+      retries: 3
+    ports:
+      - "3311:5432"
 
   metrics:
     image: mysql:8.2.0
