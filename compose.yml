@@ -1,7 +1,8 @@
 services:
-  pet:
+  pet-db:
+    container_name: pet-db
     build:
-      context: pet
+      context: pet-db
       dockerfile: Dockerfile
     environment:
       MYSQL_ROOT_PASSWORD: ${PET_MYSQL_ROOT_PASSWORD}
@@ -9,21 +10,22 @@ services:
       MYSQL_USER: ${PET_MYSQL_USER}
       MYSQL_PASSWORD: ${PET_MYSQL_PASSWORD}
     healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "pet" ]
-      retries: 5
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "pet-db" ]
+      retries: 1
     ports:
-      - "3309:3306"
+      - ${PET_MYSQL_PORT}:3306
 
-  shelter:
+  shelter-db:
+    container_name: shelter-db
     build:
-      context: shelter
+      context: shelter-db
       dockerfile: Dockerfile
     environment:
       POSTGRES_PASSWORD: ${SHELTER_POSTGRES_PASSWORD}
       POSTGRES_USER: ${SHELTER_POSTGRES_USER}
       POSTGRES_DB: ${SHELTER_POSTGRES_DB}
     depends_on:
-      pet:
+      pet-db:
         condition: "service_healthy"
     healthcheck:
       test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${SHELTER_POSTGRES_USER} -d ${SHELTER_POSTGRES_DB}'" ]
@@ -31,19 +33,12 @@ services:
       timeout: 3s
       retries: 3
     ports:
-      - "3308:5432"
+      - ${SHELTER_POSTGRES_PORT}:5432
 
-  shelter-app:
-    container_name: shelter-app
-    image: piffek1/shelter-service:latest
-    pull_policy: always
-    depends_on:
-      shelter:
-        condition: "service_healthy"
-
-  metrics:
+  metrics-db:
+    container_name: metrics-db
     build:
-      context: metrics
+      context: metrics-db
       dockerfile: Dockerfile
     environment:
       MYSQL_ROOT_PASSWORD: ${METRICS_MYSQL_ROOT_PASSWORD}
@@ -51,9 +46,9 @@ services:
       MYSQL_USER: ${METRICS_MYSQL_USER}
       MYSQL_PASSWORD: ${METRICS_MYSQL_PASSWORD}
     depends_on:
-      shelter:
+      shelter-db:
         condition: "service_healthy"
-      pet:
+      pet-db:
         condition: "service_healthy"
     ports:
-      - "3310:3306"
+      - ${METRICS_MYSQL_PORT}:3306
