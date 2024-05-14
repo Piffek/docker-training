@@ -1,3 +1,5 @@
+version: '3.7'
+
 services:
   pet-db:
     container_name: pet-db
@@ -16,6 +18,7 @@ services:
       - ${PET_MYSQL_PORT}:3306
     networks:
       - pet
+    restart: always
 
   pet-app:
     container_name: pet-app
@@ -23,17 +26,21 @@ services:
     depends_on:
       pet-db:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
     ports:
       - ${PET_APP_PORT}:${PET_APP_PORT}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8083/actuator/health" ]
       interval: 30s
-      timeout: 10s
+      timeout: 30s
       retries: 3
+      start_period: 60s
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh
+    command: ["./wait-for-it.sh", "rabbitmq:5672", "/docker-entrypoint.sh", "nginx", "-g", "daemon off;"]
     networks:
       - pet
+      - rabbit
+    restart: always
 
   shelter-db:
     container_name: shelter-db
@@ -44,18 +51,16 @@ services:
       POSTGRES_PASSWORD: ${SHELTER_POSTGRES_PASSWORD}
       POSTGRES_USER: ${SHELTER_POSTGRES_USER}
       POSTGRES_DB: ${SHELTER_POSTGRES_DB}
-    depends_on:
-      pet-db:
-        condition: "service_healthy"
     healthcheck:
       test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${SHELTER_POSTGRES_USER} -d ${SHELTER_POSTGRES_DB}'" ]
       interval: 3s
       timeout: 3s
       retries: 3
     ports:
-      - 5432:5432
+      - ${SHELTER_POSTGRES_PORT}:5432
     networks:
       - shelter
+    restart: always
 
   shelter-app:
     container_name: shelter-app
@@ -63,17 +68,20 @@ services:
     depends_on:
       shelter-db:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
     ports:
       - ${SHELTER_APP_PORT}:${SHELTER_APP_PORT}
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      timeout: 5s
       retries: 3
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh
+    command: ["./wait-for-it.sh", "rabbitmq:5672", "/docker-entrypoint.sh", "shelter-app", "-g", "daemon off;"]  # Use wait-for-it script
     networks:
       - shelter
+      - rabbit
+    restart: always
 
   metrics-db:
     container_name: metrics-db
@@ -92,21 +100,21 @@ services:
         condition: service_healthy
     ports:
       - ${METRICS_MYSQL_PORT}:3306
+    restart: always
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: rabbitmq
+    build: rabbit/.
     ports:
-      - 5672:5672
-      - 15672:15672
+      - "15672:15672"
+      - "5672:5672"
     healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
+      test: ["CMD", "curl", "-f", "http://localhost:15672"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 10
     networks:
-      - shelter
-      - pet
+      - rabbit
+    restart: always
 
   nginx:
     image: nginx
@@ -115,16 +123,19 @@ services:
     depends_on:
       shelter-app:
         condition: service_healthy
-      pet-app:
+      rabbitmq:
         condition: service_healthy
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
       - shelter
       - pet
+    restart: always
 
 networks:
   shelter:
     driver: bridge
   pet:
+    driver: bridge
+  rabbit:
     driver: bridge
