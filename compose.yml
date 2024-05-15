@@ -36,8 +36,6 @@ services:
       timeout: 30s
       retries: 10
       start_period: 60s
-    volumes:
-      - ./wait-for-it.sh:/wait-for-it.sh
     entrypoint: ./entrypoint.sh
     networks:
       - docker_network
