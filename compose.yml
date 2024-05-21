@@ -82,23 +82,41 @@ services:
       - docker_network
     restart: on-failure
 
-  metrics-db:
-    container_name: metrics-db
-    build:
-      context: metrics-db
-      dockerfile: Dockerfile
-    environment:
-      MYSQL_ROOT_PASSWORD: ${METRICS_MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${METRICS_MYSQL_DATABASE}
-      MYSQL_USER: ${METRICS_MYSQL_USER}
-      MYSQL_PASSWORD: ${METRICS_MYSQL_PASSWORD}
+  adoption-app:
+    container_name: adoption-app
+    image: piffek1/adoption-service
     depends_on:
-      shelter-db:
-        condition: service_healthy
-      pet-db:
+      adoption-db:
         condition: service_healthy
     ports:
+      - ${ADOPTION_APP_PORT}:${ADOPTION_APP_PORT}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8085/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks:
+      - docker_network
+    restart: on-failure
+
+  adoption-db:
+    container_name: adoption-db
+    build:
+      context: adoption-db
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ADOPTION_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${ADOPTION_MYSQL_DATABASE}
+      MYSQL_USER: ${ADOPTION_MYSQL_USER}
+      MYSQL_PASSWORD: ${ADOPTION_MYSQL_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "adoption-db" ]
+      retries: 1
+    ports:
       - ${METRICS_MYSQL_PORT}:3306
+    networks:
+      - docker_network
     restart: always
 
   rabbitmq:

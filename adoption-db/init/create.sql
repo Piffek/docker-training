@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS `metrics`;
-CREATE TABLE `metrics`
+DROP TABLE IF EXISTS `adoption`;
+CREATE TABLE `adoption`
 (
     `ID`       int unsigned NOT NULL AUTO_INCREMENT,
     `PET_ID`   int DEFAULT NULL,
