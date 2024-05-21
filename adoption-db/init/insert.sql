@@ -1,3 +1,3 @@
 INSERT INTO `adoption`
-VALUES (1, 1, 5),
-       (2, 2, 10);
+VALUES (1, 1, 'piwko@piwko.pl', true),
+       (2, 2, 'piwko2@piwko.pl', false);
