@@ -69,6 +69,8 @@ services:
     depends_on:
       shelter-db:
         condition: service_healthy
+      discovery-service:
+        condition: service_healthy
     ports:
       - ${SHELTER_APP_PORT}:${SHELTER_APP_PORT}
     healthcheck:
@@ -85,7 +87,7 @@ services:
   metrics-db:
     container_name: metrics-db
     build:
-      context: adoption-db
+      context: metrics-db
       dockerfile: Dockerfile
     environment:
       MYSQL_ROOT_PASSWORD: ${METRICS_MYSQL_ROOT_PASSWORD}
@@ -118,27 +120,17 @@ services:
   discovery-service:
     container_name: discovery-service
     image: piffek1/discovery-service
-    depends_on:
-      shelter-app:
-        condition: service_healthy
     ports:
-      - ${DISCOVERY_SERIVICE_PORT}:${DISCOVERY_SERIVICE_PORT}
+      - ${DISCOVERY_SERVICE_PORT}:${DISCOVERY_SERVICE_PORT}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8090/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
     networks:
       - docker_network
     restart: on-failure
-
-#  nginx:
-#    image: nginx
-#    ports:
-#      - ${NGINX_SERVER_PORT}:80
-#    depends_on:
-#      shelter-app:
-#        condition: service_healthy
-#    volumes:
-#      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-#    networks:
-#      - docker_network
-#    restart: always
 
 networks:
   docker_network:
