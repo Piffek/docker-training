@@ -71,14 +71,6 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
-    ports:
-      - ${SHELTER_APP_PORT}:${SHELTER_APP_PORT}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
     entrypoint: ./entrypoint.sh
     networks:
       - docker_network
