@@ -33,6 +33,8 @@ services:
     entrypoint: ./entrypoint.sh
     networks:
       - docker_network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     restart: on-failure
 
   shelter-db:
@@ -68,6 +70,8 @@ services:
     entrypoint: ./entrypoint.sh
     networks:
       - docker_network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     restart: on-failure
 
   adoption-app:
@@ -80,6 +84,8 @@ services:
         condition: service_healthy
     networks:
       - docker_network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     restart: on-failure
 
   adoption-db:
@@ -128,6 +134,8 @@ services:
       start_period: 60s
     networks:
       - docker_network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     restart: on-failure
 
 networks:
