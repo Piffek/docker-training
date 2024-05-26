@@ -28,14 +28,8 @@ services:
     depends_on:
       pet-db:
         condition: service_healthy
-    ports:
-      - ${PET_APP_PORT}:${PET_APP_PORT}
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8083/actuator/health" ]
-      interval: 30s
-      timeout: 30s
-      retries: 10
-      start_period: 60s
+      discovery-service:
+        condition: service_healthy
     entrypoint: ./entrypoint.sh
     networks:
       - docker_network
@@ -82,14 +76,8 @@ services:
     depends_on:
       adoption-db:
         condition: service_healthy
-    ports:
-      - ${ADOPTION_APP_PORT}:${ADOPTION_APP_PORT}
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8085/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
+      discovery-service:
+        condition: service_healthy
     networks:
       - docker_network
     restart: on-failure
@@ -108,7 +96,7 @@ services:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "adoption-db" ]
       retries: 1
     ports:
-      - ${METRICS_MYSQL_PORT}:3306
+      - ${ADOPTION_MYSQL_PORT}:3306
     networks:
       - docker_network
     restart: always
