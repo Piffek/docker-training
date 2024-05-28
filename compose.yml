@@ -20,10 +20,10 @@ services:
       - docker_network
     restart: always
 
-  pet-app:
-    container_name: pet-app
+  pet-service:
+    container_name: pet-service
     build:
-      context: pet-app
+      context: pet-service
       dockerfile: Dockerfile
     depends_on:
       pet-db:
@@ -57,10 +57,10 @@ services:
       - docker_network
     restart: always
 
-  shelter-app:
-    container_name: shelter-app
+  shelter-service:
+    container_name: shelter-service
     build:
-      context: shelter-app
+      context: shelter-service
       dockerfile: Dockerfile
     depends_on:
       shelter-db:
@@ -74,8 +74,8 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
     restart: on-failure
 
-  adoption-app:
-    container_name: adoption-app
+  adoption-service:
+    container_name: adoption-service
     image: piffek1/adoption-service
     depends_on:
       adoption-db:
@@ -136,6 +136,22 @@ services:
       - docker_network
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    restart: on-failure
+
+  api-gateway:
+    container_name: api-gateway
+    image: piffek1/api-gateway
+    ports:
+      - ${API_GATEWAY_EXPOSE_PORT}:${API_GATEWAY_IN_PORT}
+    expose:
+      - ${API_GATEWAY_EXPOSE_PORT}
+    networks:
+      - docker_network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      discovery-service:
+        condition: service_healthy
     restart: on-failure
 
 networks:
