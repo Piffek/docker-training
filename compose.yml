@@ -107,6 +107,18 @@ services:
       - docker_network
     restart: always
 
+  notification-service:
+    container_name: notification-service
+    image: piffek1/notification-service
+    networks:
+      - docker_network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    restart: on-failure
+
   rabbitmq:
     build: rabbit/.
     ports:
